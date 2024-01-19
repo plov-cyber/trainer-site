@@ -8,6 +8,9 @@ from data.test import Test
 from forms.reg_form import RegisterForm
 from forms.login_form import LoginForm
 from forms.change_pwd_form import ChangePasswordForm
+from forms.create_test_form import CreateTestForm
+
+# from forms.add_question_form import AddQuestionForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'my_secret_key'
@@ -29,7 +32,7 @@ def load_user(user_id):
 
 def main():
     db_session.global_init("sqlite.db")
-    app.run(debug=True)
+    app.run(port=8080, debug=True)
 
 
 @app.route('/')
@@ -75,12 +78,59 @@ def my_tests():
     else:
         tests = user.tests_available
 
-    return render_template('my_tests.html', tests=tests)
+    return render_template('my_tests.html', tests=tests, title='Мои тесты')
 
 
 @app.route('/create_test', methods=['GET', 'POST'])
+@login_required
 def create_test():
-    pass
+    if not current_user.is_teacher:
+        return redirect('/my_tests')
+
+    test_form = CreateTestForm()
+    # q_form = AddQuestionForm()
+
+    if test_form.validate_on_submit():
+        session = db_session.create_session()
+
+        # if test_form.name.data in list(map(lambda test: test.name, session.get(User, current_user.id).tests_created)):
+        #     print('ugabuga')
+
+        new_test = Test(
+            name=test_form.name.data.strip(),
+            creator_id=current_user.id
+        )
+
+        session.add(new_test)
+        session.commit()
+
+        test_id = new_test.id
+
+        session.close()
+
+        return redirect(f'/add_questions/{test_id}')
+
+    return render_template('create_test.html', test_form=test_form, title='Создание теста', questions=[])
+
+
+@app.route('/add_questions/<int:test_id>', methods=['GET', 'POST'])
+@login_required
+def add_questions(test_id):
+    return redirect('/my_tests')
+
+
+@app.route('/delete_test/<int:test_id>', methods=['GET'])
+@login_required
+def delete_test(test_id):
+    session = db_session.create_session()
+
+    test = session.get(Test, test_id)
+
+    session.delete(test)
+    session.commit()
+    session.close()
+
+    return redirect(request.referrer)
 
 
 # ==================================================
@@ -128,6 +178,7 @@ def register():
         session.close()
 
         return redirect('/login')
+
     return render_template('register.html', form=form, title='Регистрация')
 
 
@@ -152,6 +203,7 @@ def login():
         return render_template('login.html', title='Авторизация',
                                message='Неправильный логин или пароль',
                                form=form)
+
     return render_template('login.html', title='Авторизация', form=form)
 
 
