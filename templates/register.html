@@ -1,0 +1,113 @@
+{% extends "base.html" %}
+
+{% block forms %}
+    <div style="max-width: 600px; margin: auto;" align="center">
+        <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+            {{ form.csrf_token }}
+            <h1>Регистрация</h1>
+            <br>
+
+            <div class="form-group row">
+                {{ form.login.label(for="login_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10">
+                    {{ form.login(class="form-control", id="login_input") }}
+                </div>
+            </div>
+            {% for error in form.login.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                {{ form.surname.label(for="surname_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10">
+                    {{ form.surname(class="form-control", id="surname_input") }}
+                </div>
+            </div>
+            {% for error in form.surname.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                {{ form.name.label(for="name_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10">
+                    {{ form.name(class="form-control", id="name_input") }}
+                </div>
+            </div>
+            {% for error in form.name.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                {{ form.is_teacher.label(for="is_teacher_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-3" align="center">
+                    {{ form.is_teacher(class="form-check-input", id="is_teacher_input", type="checkbox") }}
+                </div>
+            </div>
+            {% for error in form.is_teacher.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                {{ form.password.label(for="password_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10">
+                    {{ form.password(class="form-control", id="password_input", type="password") }}
+                </div>
+            </div>
+            {% for error in form.password.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                {{ form.password_again.label(for="password2_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10">
+                    {{ form.password_again(class="form-control", id="password2_input", type="password") }}
+                </div>
+            </div>
+            {% for error in form.password_again.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    {{ form.submit(type="submit", class="btn btn-primary") }}
+                </div>
+            </div>
+
+            {% if message %}
+                <div class="row alert alert-danger">{{ message }}</div>
+            {% endif %}
+        </form>
+        <a class="nav-link" href="/login" style="color: gray;">Войти</a>
+    </div>
+{% endblock %}

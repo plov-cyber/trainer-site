@@ -1,0 +1,74 @@
+{% extends "base.html" %}
+
+{#{% block script %}#}
+{#<script type="text/javascript">#}
+{#    setInterval(function() {#}
+{#        $.getJSON($SCRIPT_ROOT + '/get_news',#}
+{#        function(data) {#}
+{#            $("#news").html(data.news)#}
+{#        });#}
+{#        return false;#}
+{#    }, 4000);#}
+{#</script>#}
+{#{% endblock %}#}
+
+{% block content %}
+    <div class="container-fluid shadow-sm rounded" style="background-color: #F0F0F0;">
+        <div class="row">
+            <div class="col-9">
+                <h1>Мои тесты</h1>
+            </div>
+
+            {% if current_user.is_teacher %}
+                <div class="col-3" style="margin: auto auto;">
+                    <a href="/create_test" class="btn btn-primary">Создать тест</a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <br>
+
+    <div class="container-fluid" id="tests">
+        {% for test in tests|reverse %}
+            <div class="container-fluid shadow-sm rounded" style="background-color: #F0F0F0; padding-bottom: 10px;">
+                {#                        <div class="row">#}
+                {#                            <div class="col-10">#}
+                {#                                <h3>{{ users[article['id']] }}</h3>#}
+                {#                                <small>{{ article['created_date']|string|truncate(16, True, '') }}</small>#}
+                {#                            </div>#}
+                {#                        </div>#}
+
+                {#                <div class="row">#}
+                {#                    <div class="col-12">#}
+                {#                        <h5>{{ article['content'] }}</h5>#}
+                {#                    </div>#}
+                {#                </div>#}
+
+                <div class="row">
+                    <div class="col-12">
+                        <h3>{{ test.name }}</h3>
+                    </div>
+
+                    {% if current_user.is_teacher %}
+                        <div class="col-5">
+                            <a href="/edit_test/{{ test.id }}" class="btn btn-secondary">
+                                Редактировать
+                            </a>
+                            <a href="/delete_test/{{ test.id }}" class="btn btn-danger">
+                                Удалить
+                            </a>
+                        </div>
+                    {% else %}
+                        <div class="col-5">
+                            <a href="/solve_test/{{ test.id }}" class="btn btn-secondary">
+                                Пройти
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+            <br>
+        {% endfor %}
+    </div>
+{% endblock %}
