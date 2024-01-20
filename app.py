@@ -2,15 +2,16 @@ from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 
 from data import db_session
+from data.question import Question
 from data.user import User
 from data.test import Test
+from data.idiom import Idiom
 
 from forms.reg_form import RegisterForm
 from forms.login_form import LoginForm
 from forms.change_pwd_form import ChangePasswordForm
 from forms.create_test_form import CreateTestForm
-
-# from forms.add_question_form import AddQuestionForm
+from forms.add_question_form import AddQuestionForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'my_secret_key'
@@ -113,12 +114,6 @@ def create_test():
     return render_template('create_test.html', test_form=test_form, title='Создание теста', questions=[])
 
 
-@app.route('/add_questions/<int:test_id>', methods=['GET', 'POST'])
-@login_required
-def add_questions(test_id):
-    return redirect('/my_tests')
-
-
 @app.route('/delete_test/<int:test_id>', methods=['GET'])
 @login_required
 def delete_test(test_id):
@@ -136,12 +131,52 @@ def delete_test(test_id):
 # ==================================================
 
 
+# QUESTIONS
+# ==================================================
+
+@app.route('/add_questions/<int:test_id>', methods=['GET', 'POST'])
+@login_required
+def add_questions(test_id):
+    form = AddQuestionForm()
+
+    session = db_session.create_session()
+    form.idiom.choices = [
+        (idiom.id, idiom.text)
+        for idiom in session.query(Idiom).filter(Idiom.creator_id == current_user.id).all()
+    ]
+    test = session.get(Test, test_id)
+
+    if form.validate_on_submit():
+        print(form.idiom.data)
+
+    return render_template('add_question.html',
+                           form=form, questions=test.questions, title='Добавление вопроса')
+
+
+# ==================================================
+
+
+# IDIOMS
+# ==================================================
 @app.route('/my_idioms', methods=['GET'])
 @login_required
 def my_idioms():
     if not current_user.is_teacher:
         return redirect('/login')
 
+    return render_template('my_idioms.html')
+
+
+@app.route('/add_idiom', methods=['GET', 'POST'])
+@login_required
+def add_idiom():
+    if not current_user.is_teacher:
+        return redirect('/my_tests')
+
+    pass
+
+
+# ==================================================
 
 @app.route('/pupils_results', methods=['GET'])
 @login_required
@@ -149,6 +184,8 @@ def pupils_results():
     if not current_user.is_teacher:
         return redirect('/login')
 
+
+# ==================================================
 
 # AUTHENTICATION
 # ==================================================

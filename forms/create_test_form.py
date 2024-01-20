@@ -1,8 +1,8 @@
 # coding=utf-8
 # Импорты необходимых библиотек, классов и функций
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField, FieldList, IntegerField
-from wtforms.validators import DataRequired, InputRequired
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
 
 
 class CreateTestForm(FlaskForm):

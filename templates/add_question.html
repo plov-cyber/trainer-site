@@ -1,0 +1,111 @@
+{% extends "create_test.html" %}
+
+{% block forms %}
+
+    <div style="max-width: 600px; margin: auto;" align="center">
+        <form method="post" novalidate>
+            {{ form.hidden_tag() }}
+            {{ form.csrf_token }}
+            <h3>Добавить вопрос</h3>
+            <br>
+
+            <div class="form-group row">
+                {{ form.idiom.label(for="idiom-select", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10 dropdown">
+                    <a class="btn btn-white dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        Выберите идиому
+                    </a>
+
+                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink"
+                         style="overflow: auto; max-height: 200px;">
+                        {% for subfield in form.idiom %}
+                            <div class="dropdown-item">
+                                {{ subfield }} {{ subfield.label }}
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% for error in form.idiom.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+
+            <div class="form-group">
+                <div class="row" style="margin: 10px;">
+                    <div class="col-sm-12">
+                        <h5>Варианты ответа</h5>
+                    </div>
+                </div>
+
+                {% for opt in form.options %}
+                    <div class="row">
+                        <div class="col-sm-3">
+                            {{ loop.index }}
+                        </div>
+                        <div class="col-sm-9">
+                            {{ opt(class="form-control", id="option_input") }}
+                        </div>
+                    </div>
+                    <br>
+                {% endfor %}
+            </div>
+
+            {% for error in form.options.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
+                    </div>
+                </div>
+            {% endfor %}
+
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    {{ form.submit(type="submit", class="btn btn-primary") }}
+                </div>
+            </div>
+
+            {% if message %}
+                <div class="row alert alert-danger">{{ message }}</div>
+            {% endif %}
+        </form>
+    </div>
+
+    <br>
+
+    <div class="container-fluid" id="questions" align="center">
+        <h3>Добавленные вопросы</h3>
+
+        {% if not questions %}
+            Вы пока не добавили ни одного вопроса :(
+        {% endif %}
+
+        {% for question in questions|reverse %}
+            <div class="container-fluid shadow-sm rounded"
+                 style="background-color: #F0F0F0; padding-bottom: 10px; padding-top: 10px;">
+                <div class="row">
+                    <div class="col-12">
+                        <h4>{{ question.idiom.text }}</h4>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-5">
+                        <a href="/delete_test/{{ question.id }}" class="btn btn-danger">
+                            Удалить
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <br>
+        {% endfor %}
+    </div>
+
+{% endblock %}
