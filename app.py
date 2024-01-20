@@ -13,11 +13,11 @@ from forms.change_pwd_form import ChangePasswordForm
 from forms.create_test_form import CreateTestForm
 from forms.add_question_form import AddQuestionForm
 
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'my_secret_key'
+application = Flask(__name__)
+application.config['SECRET_KEY'] = 'my_secret_key'
 
 login_manager = LoginManager()
-login_manager.init_app(app)
+login_manager.init_app(application)
 
 
 @login_manager.user_loader
@@ -33,10 +33,10 @@ def load_user(user_id):
 
 def main():
     db_session.global_init("sqlite.db")
-    app.run(host='0.0.0.0')
+    application.run(host='0.0.0.0')
 
 
-@app.route('/')
+@application.route('/')
 def index():
     return redirect('/my_tests')
 
@@ -45,19 +45,19 @@ def index():
 # ==================================================
 
 
-@app.errorhandler(404)
+@application.errorhandler(404)
 def not_found(error):
     """Отлавливает ошибку 404 Not Found. Возвращает страницу с сообщением об ошибке."""
     return render_template('error.html', error=str(error).split(': ')), 404
 
 
-@app.errorhandler(500)
+@application.errorhandler(500)
 def bad_request(error):
     """Отлавливает ошибку 500 Bad Request. Возвращает страницу с сообщением об ошибке."""
     return render_template('error.html', error=str(error).split(': ')), 500
 
 
-@app.errorhandler(401)
+@application.errorhandler(401)
 def unauthorized(error):
     """Отлавливает ошибку 401 Unauthorized. Перенаправляет пользователя на страницу для входа."""
     return redirect('/login')
@@ -68,7 +68,7 @@ def unauthorized(error):
 # TESTS
 # ==================================================
 
-@app.route('/my_tests', methods=['GET'])
+@application.route('/my_tests', methods=['GET'])
 @login_required
 def my_tests():
     session = db_session.create_session()
@@ -82,7 +82,7 @@ def my_tests():
     return render_template('my_tests.html', tests=tests, title='Мои тесты')
 
 
-@app.route('/create_test', methods=['GET', 'POST'])
+@application.route('/create_test', methods=['GET', 'POST'])
 @login_required
 def create_test():
     if not current_user.is_teacher:
@@ -114,7 +114,7 @@ def create_test():
     return render_template('create_test.html', test_form=test_form, title='Создание теста', questions=[])
 
 
-@app.route('/delete_test/<int:test_id>', methods=['GET'])
+@application.route('/delete_test/<int:test_id>', methods=['GET'])
 @login_required
 def delete_test(test_id):
     session = db_session.create_session()
@@ -134,7 +134,7 @@ def delete_test(test_id):
 # QUESTIONS
 # ==================================================
 
-@app.route('/add_questions/<int:test_id>', methods=['GET', 'POST'])
+@application.route('/add_questions/<int:test_id>', methods=['GET', 'POST'])
 @login_required
 def add_questions(test_id):
     form = AddQuestionForm()
@@ -158,7 +158,7 @@ def add_questions(test_id):
 
 # IDIOMS
 # ==================================================
-@app.route('/my_idioms', methods=['GET'])
+@application.route('/my_idioms', methods=['GET'])
 @login_required
 def my_idioms():
     if not current_user.is_teacher:
@@ -167,7 +167,7 @@ def my_idioms():
     return render_template('my_idioms.html')
 
 
-@app.route('/add_idiom', methods=['GET', 'POST'])
+@application.route('/add_idiom', methods=['GET', 'POST'])
 @login_required
 def add_idiom():
     if not current_user.is_teacher:
@@ -178,7 +178,7 @@ def add_idiom():
 
 # ==================================================
 
-@app.route('/pupils_results', methods=['GET'])
+@application.route('/pupils_results', methods=['GET'])
 @login_required
 def pupils_results():
     if not current_user.is_teacher:
@@ -191,7 +191,7 @@ def pupils_results():
 # ==================================================
 
 
-@app.route('/register', methods=['GET', 'POST'])
+@application.route('/register', methods=['GET', 'POST'])
 def register():
     form = RegisterForm()
 
@@ -219,7 +219,7 @@ def register():
     return render_template('register.html', form=form, title='Регистрация')
 
 
-@app.route('/login', methods=['GET', 'POST'])
+@application.route('/login', methods=['GET', 'POST'])
 def login():
     if current_user.is_authenticated:
         return redirect('/logout')
@@ -244,7 +244,7 @@ def login():
     return render_template('login.html', title='Авторизация', form=form)
 
 
-@app.route('/logout')
+@application.route('/logout')
 @login_required
 def logout():
     """Страница для выхода пользователя."""
@@ -258,7 +258,7 @@ def logout():
 # ==================================================
 
 
-@app.route('/settings', methods=['GET', 'POST'])
+@application.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
     """Страница настроек пользователя."""
@@ -286,7 +286,7 @@ def settings():
     return render_template('settings.html', title='Настройки', form=form)
 
 
-@app.route('/delete_profile/<int:user_id>')
+@application.route('/delete_profile/<int:user_id>')
 @login_required
 def delete_profile(user_id):
     """Функция для удаления профиля пользователя."""
