@@ -33,7 +33,7 @@ def load_user(user_id):
 
 def main():
     db_session.global_init("sqlite.db")
-    app.run(port=8080, debug=True)
+    app.run(host='0.0.0.0')
 
 
 @app.route('/')
