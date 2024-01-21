@@ -1,5 +1,6 @@
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
+import logging
 
 from data import db_session
 from data.question import Question
@@ -13,11 +14,17 @@ from forms.change_pwd_form import ChangePasswordForm
 from forms.create_test_form import CreateTestForm
 from forms.add_question_form import AddQuestionForm
 
+from secret_key import secret_key
+
+logging.basicConfig(filename='error.log', level=logging.DEBUG)
+
 application = Flask(__name__)
-application.config['SECRET_KEY'] = 'my_secret_key'
+application.config['SECRET_KEY'] = secret_key
 
 login_manager = LoginManager()
 login_manager.init_app(application)
+
+db_session.global_init("sqlite.db")
 
 
 @login_manager.user_loader
@@ -29,11 +36,6 @@ def load_user(user_id):
 
     session.close()
     return user
-
-
-def main():
-    db_session.global_init("sqlite.db")
-    application.run(host='0.0.0.0')
 
 
 @application.route('/')
@@ -306,4 +308,5 @@ def delete_profile(user_id):
 # ==================================================
 
 if __name__ == '__main__':
-    main()
+    application.run(host='0.0.0.0')
+    # application.run(port=8080, debug=True)
