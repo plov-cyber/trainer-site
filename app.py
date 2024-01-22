@@ -26,13 +26,13 @@ application.config['SECRET_KEY'] = secret_key
 login_manager = LoginManager()
 login_manager.init_app(application)
 
-db_session.global_init("sqlite.db")
+__factory = db_session.global_init("sqlite.db", None)
 
 
 @login_manager.user_loader
 def load_user(user_id):
     """Менеджер авторизации."""
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
 
     user = session.get(User, user_id)
 
@@ -75,7 +75,7 @@ def unauthorized(error):
 @application.route('/my_tests', methods=['GET'])
 @login_required
 def my_tests():
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
     user = session.get(User, current_user.id)
 
     if current_user.is_teacher:
@@ -95,7 +95,7 @@ def create_test():
     test_form = CreateTestForm()
 
     if test_form.validate_on_submit():
-        session = db_session.create_session()
+        session = db_session.create_session(__factory)
 
         tests = session.query(Test).filter(Test.name == test_form.name.data).all()
         if len(tests) > 0:
@@ -131,7 +131,7 @@ def delete_test(test_id):
     if not current_user.is_teacher:
         return redirect('/login')
 
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
 
     test = session.get(Test, test_id)
 
@@ -159,7 +159,13 @@ def add_questions(test_id):
 
     form = AddQuestionForm()
 
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
+
+    test = session.get(Test, test_id)
+    form.idiom.choices = [
+        (idiom.id, idiom.text)
+        for idiom in session.query(Idiom).filter(Idiom.creator_id == current_user.id).all()
+    ]
 
     if form.validate_on_submit():
         idiom = session.get(Idiom, form.idiom.data)
@@ -194,12 +200,6 @@ def add_questions(test_id):
 
         return redirect(f'/add_questions/{test_id}')
 
-    test = session.get(Test, test_id)
-    form.idiom.choices = [
-        (idiom.id, idiom.text)
-        for idiom in session.query(Idiom).filter(Idiom.creator_id == current_user.id).all()
-    ]
-
     return render_template('add_question.html',
                            form=form, questions=test.questions, title='Добавление вопроса')
 
@@ -210,7 +210,7 @@ def delete_question(question_id):
     if not current_user.is_teacher:
         return redirect("/login")
 
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
 
     question = session.get(Question, question_id)
 
@@ -236,7 +236,7 @@ def my_idioms():
     if not current_user.is_teacher:
         return redirect('/login')
 
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
     user = session.get(User, current_user.id)
     idioms = user.idioms
 
@@ -252,7 +252,7 @@ def add_idiom():
     form = AddIdiomForm()
 
     if form.validate_on_submit():
-        session = db_session.create_session()
+        session = db_session.create_session(__factory)
 
         idioms = session.query(Idiom).filter(Idiom.text == form.text.data).all()
         if len(idioms) > 0:
@@ -280,7 +280,7 @@ def delete_idiom(idiom_id):
     if not current_user.is_teacher:
         return redirect('/login')
 
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
 
     idiom = session.get(Idiom, idiom_id)
 
@@ -329,7 +329,7 @@ def register():
     form = RegisterForm()
 
     if form.validate_on_submit():
-        session = db_session.create_session()
+        session = db_session.create_session(__factory)
 
         if session.query(User).filter(User.login == form.login.data.strip()).first():
             return render_template('register.html', title='Регистрация', form=form,
@@ -360,7 +360,7 @@ def login():
     form = LoginForm()
 
     if form.validate_on_submit():
-        session = db_session.create_session()
+        session = db_session.create_session(__factory)
         user = session.query(User).filter(
             User.login == form.login.data.strip()).first()
 
@@ -403,7 +403,7 @@ def settings():
         if current_user.check_password(form.old_password.data):
 
             if form.old_password.data != form.new_password.data:
-                session = db_session.create_session()
+                session = db_session.create_session(__factory)
 
                 user = session.get(User, current_user.id)
                 user.set_password(form.new_password.data)
@@ -426,7 +426,7 @@ def delete_profile(user_id):
     """Функция для удаления профиля пользователя."""
     logout_user()
 
-    session = db_session.create_session()
+    session = db_session.create_session(__factory)
 
     user = session.get(User, user_id)
     session.delete(user)
