@@ -93,7 +93,6 @@ def create_test():
         return redirect('/my_tests')
 
     test_form = CreateTestForm()
-    # q_form = AddQuestionForm()
 
     if test_form.validate_on_submit():
         session = db_session.create_session()
@@ -118,6 +117,12 @@ def create_test():
         return redirect(f'/add_questions/{test_id}')
 
     return render_template('create_test.html', test_form=test_form, title='Создание теста')
+
+
+@application.route('/take_test/<int:test_id>', methods=['GET', 'POST'])
+@login_required
+def take_test(test_id):
+    pass
 
 
 @application.route('/delete_test/<int:test_id>', methods=['GET'])
@@ -155,11 +160,6 @@ def add_questions(test_id):
     form = AddQuestionForm()
 
     session = db_session.create_session()
-    form.idiom.choices = [
-        (idiom.id, idiom.text)
-        for idiom in session.query(Idiom).filter(Idiom.creator_id == current_user.id).all()
-    ]
-    test = session.get(Test, test_id)
 
     if form.validate_on_submit():
         idiom = session.get(Idiom, form.idiom.data)
@@ -170,6 +170,13 @@ def add_questions(test_id):
             test_id=test_id
         )
         session.add(new_question)
+        session.commit()
+
+        correct_option = Option(
+            question_id=new_question.id,
+            text=idiom.meaning
+        )
+        session.add(correct_option)
         session.commit()
 
         for opt in form.options.data:
@@ -186,6 +193,12 @@ def add_questions(test_id):
         session.close()
 
         return redirect(f'/add_questions/{test_id}')
+
+    test = session.get(Test, test_id)
+    form.idiom.choices = [
+        (idiom.id, idiom.text)
+        for idiom in session.query(Idiom).filter(Idiom.creator_id == current_user.id).all()
+    ]
 
     return render_template('add_question.html',
                            form=form, questions=test.questions, title='Добавление вопроса')
@@ -292,6 +305,16 @@ def delete_idiom(idiom_id):
 def pupils_results():
     if not current_user.is_teacher:
         return redirect('/login')
+
+    # заглушка
+    return redirect('/my_tests')
+
+
+@application.route('/my_results', methods=['GET'])
+@login_required
+def my_results():
+    # заглушка
+    return redirect('/my_tests')
 
 
 # ==================================================

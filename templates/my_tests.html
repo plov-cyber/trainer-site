@@ -42,8 +42,11 @@
 
                 {% if current_user.is_teacher %}
                     <div class="row">
-                        <div class="col-5">
-                            <a href="/edit_test/{{ test.id }}" class="btn btn-secondary">
+                        <div class="col-7">
+                            <a href="/take_test/{{ test.id }}" class="btn btn-primary">
+                                Пройти
+                            </a>
+                            <a href="/add_questions/{{ test.id }}" class="btn btn-secondary">
                                 Редактировать
                             </a>
                             <a href="/delete_test/{{ test.id }}" class="btn btn-danger">
