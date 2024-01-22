@@ -11,20 +11,8 @@
 
             <div class="form-group row">
                 {{ form.idiom.label(for="idiom-select", class="col-sm-2 col-form-label") }}
-                <div class="col-sm-10 dropdown">
-                    <a class="btn btn-white dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                       data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        Выберите идиому
-                    </a>
-
-                    <div class="dropdown-menu" aria-labelledby="dropdownMenuLink"
-                         style="overflow: auto; max-height: 200px;">
-                        {% for subfield in form.idiom %}
-                            <div class="dropdown-item">
-                                {{ subfield }} {{ subfield.label }}
-                            </div>
-                        {% endfor %}
-                    </div>
+                <div class="col-sm-10">
+                    {{ form.idiom }}
                 </div>
             </div>
             {% for error in form.idiom.errors %}
@@ -40,9 +28,10 @@
             <div class="form-group">
                 <div class="row" style="margin: 10px;">
                     <div class="col-sm-12">
-                        <h5>Варианты ответа</h5>
+                        <h5>Варианты ответа</h5>( верный вариант ответа добавится автоматически )
                     </div>
                 </div>
+                <br>
 
                 {% for opt in form.options %}
                     <div class="row">
@@ -80,8 +69,11 @@
 
     <br>
 
-    <div class="container-fluid" id="questions" align="center">
+    <div class="container-fluid" align="center">
         <h3>Добавленные вопросы</h3>
+    </div>
+
+    <div class="container-fluid" id="questions">
 
         {% if not questions %}
             Вы пока не добавили ни одного вопроса :(
@@ -98,7 +90,7 @@
 
                 <div class="row">
                     <div class="col-5">
-                        <a href="/delete_test/{{ question.id }}" class="btn btn-danger">
+                        <a href="/delete_question/{{ question.id }}" class="btn btn-danger">
                             Удалить
                         </a>
                     </div>

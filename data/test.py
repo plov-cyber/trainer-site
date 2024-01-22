@@ -13,7 +13,7 @@ class Test(SqlAlchemyBase, SerializerMixin):
 
     name = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
-    questions = orm.relationship('Question', back_populates='test')
+    questions = orm.relationship('Question', back_populates='test', cascade='all, delete')
 
     creator_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'), nullable=False)
     creator = orm.relationship('User', back_populates='tests_created')

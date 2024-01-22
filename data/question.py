@@ -11,7 +11,7 @@ class Question(SqlAlchemyBase, SerializerMixin):
 
     id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True, autoincrement=True)
 
-    options = orm.relationship('Option', back_populates='question')
+    options = orm.relationship('Option', back_populates='question', cascade="all, delete")
     answer = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
     idiom_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('idioms.id'))

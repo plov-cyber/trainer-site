@@ -30,38 +30,30 @@
 
     <br>
 
-{#    <div class="container-fluid" id="tests">#}
-{#        {% for test in tests|reverse %}#}
-{#            <div class="container-fluid shadow-sm rounded"#}
-{#                 style="background-color: #F0F0F0; padding-bottom: 10px; padding-top: 10px;">#}
-{#                <div class="row">#}
-{#                    <div class="col-12">#}
-{#                        <h4>{{ test.name }}</h4>#}
-{#                    </div>#}
-{#                </div>#}
-{##}
-{#                {% if current_user.is_teacher %}#}
-{#                    <div class="row">#}
-{#                        <div class="col-5">#}
-{#                            <a href="/edit_test/{{ test.id }}" class="btn btn-secondary">#}
-{#                                Редактировать#}
-{#                            </a>#}
-{#                            <a href="/delete_test/{{ test.id }}" class="btn btn-danger">#}
-{#                                Удалить#}
-{#                            </a>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                {% else %}#}
-{#                    <div class="row">#}
-{#                        <div class="col-5">#}
-{#                            <a href="/solve_test/{{ test.id }}" class="btn btn-secondary">#}
-{#                                Пройти#}
-{#                            </a>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                {% endif %}#}
-{#            </div>#}
-{#            <br>#}
-{#        {% endfor %}#}
-{#    </div>#}
+    <div class="container-fluid" id="tests">
+        {% for idiom in idioms|reverse %}
+            <div class="container-fluid shadow-sm rounded"
+                 style="background-color: #F0F0F0; padding-bottom: 10px; padding-top: 10px;">
+                <div class="row">
+                    <div class="col-2">
+                        <h4>Идиома:</h4>
+                    </div>
+                    <div class="col-10">
+                        <b>{{ idiom.text }}</b>
+                    </div>
+                </div>
+
+                {% if current_user.is_teacher %}
+                    <div class="row">
+                        <div class="col-5">
+                            <a href="/delete_idiom/{{ idiom.id }}" class="btn btn-danger">
+                                Удалить
+                            </a>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <br>
+        {% endfor %}
+    </div>
 {% endblock %}

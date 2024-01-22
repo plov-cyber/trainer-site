@@ -26,13 +26,8 @@ class User(SqlAlchemyBase, UserMixin, SerializerMixin):
 
     hashed_password = sqlalchemy.Column(sqlalchemy.String, nullable=False)
 
-    # TODO: implement tests and idioms
-    tests_created = orm.relationship('Test', back_populates='creator')
-    idioms = orm.relationship('Idiom', back_populates='creator')
-
-    # dialogues = orm.relation('Dialogue', secondary='user_to_dialogue', backref='users')
-    # messages = orm.relation('Message', back_populates='user')
-    # news = orm.relation("News", back_populates='user')
+    tests_created = orm.relationship('Test', back_populates='creator', cascade='all, delete')
+    idioms = orm.relationship('Idiom', back_populates='creator', cascade='all, delete')
 
     def set_password(self, password):
         """Функция установки пароля"""

@@ -2,7 +2,7 @@
 # Импорты необходимых библиотек, классов и функций
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, FieldList, SelectField
-from wtforms.validators import ValidationError, DataRequired
+from wtforms.validators import ValidationError, InputRequired
 
 
 class AtLeastOne(object):
@@ -19,7 +19,7 @@ class AtLeastOne(object):
 class AddQuestionForm(FlaskForm):
     """Класс формы для добавления вопроса в тест"""
 
-    idiom = SelectField('Идиома', coerce=int, validators=[DataRequired('Выберите идиому из списка')])
+    idiom = SelectField('Идиома', coerce=int)
 
     options = FieldList(StringField('Вариант ответа'),
                         validators=[AtLeastOne(message='Введите хотя бы один вариант ответа')],

@@ -3,6 +3,7 @@ from flask_login import LoginManager, login_user, logout_user, current_user, log
 import logging
 
 from data import db_session
+from data.option import Option
 from data.question import Question
 from data.user import User
 from data.test import Test
@@ -13,6 +14,7 @@ from forms.login_form import LoginForm
 from forms.change_pwd_form import ChangePasswordForm
 from forms.create_test_form import CreateTestForm
 from forms.add_question_form import AddQuestionForm
+from forms.add_idiom_form import AddIdiomForm
 
 from secret_key import secret_key
 
@@ -46,7 +48,6 @@ def index():
 # ERROR HANDLING
 # ==================================================
 
-
 @application.errorhandler(404)
 def not_found(error):
     """Отлавливает ошибку 404 Not Found. Возвращает страницу с сообщением об ошибке."""
@@ -66,6 +67,7 @@ def unauthorized(error):
 
 
 # ==================================================
+
 
 # TESTS
 # ==================================================
@@ -96,8 +98,10 @@ def create_test():
     if test_form.validate_on_submit():
         session = db_session.create_session()
 
-        # if test_form.name.data in list(map(lambda test: test.name, session.get(User, current_user.id).tests_created)):
-        #     print('ugabuga')
+        tests = session.query(Test).filter(Test.name == test_form.name.data).all()
+        if len(tests) > 0:
+            return render_template('create_test.html', test_form=test_form, title='Создание теста',
+                                   message="Тест с таким названием уже существует :(")
 
         new_test = Test(
             name=test_form.name.data.strip(),
@@ -113,15 +117,21 @@ def create_test():
 
         return redirect(f'/add_questions/{test_id}')
 
-    return render_template('create_test.html', test_form=test_form, title='Создание теста', questions=[])
+    return render_template('create_test.html', test_form=test_form, title='Создание теста')
 
 
 @application.route('/delete_test/<int:test_id>', methods=['GET'])
 @login_required
 def delete_test(test_id):
+    if not current_user.is_teacher:
+        return redirect('/login')
+
     session = db_session.create_session()
 
     test = session.get(Test, test_id)
+
+    if test.creator_id != current_user.id:
+        return redirect('/login')
 
     session.delete(test)
     session.commit()
@@ -139,6 +149,9 @@ def delete_test(test_id):
 @application.route('/add_questions/<int:test_id>', methods=['GET', 'POST'])
 @login_required
 def add_questions(test_id):
+    if not current_user.is_teacher:
+        return redirect('/login')
+
     form = AddQuestionForm()
 
     session = db_session.create_session()
@@ -149,10 +162,53 @@ def add_questions(test_id):
     test = session.get(Test, test_id)
 
     if form.validate_on_submit():
-        print(form.idiom.data)
+        idiom = session.get(Idiom, form.idiom.data)
+
+        new_question = Question(
+            idiom_id=idiom.id,
+            answer=idiom.text,
+            test_id=test_id
+        )
+        session.add(new_question)
+        session.commit()
+
+        for opt in form.options.data:
+            opt = opt.strip()
+
+            if opt:
+                new_option = Option(
+                    question_id=new_question.id,
+                    text=opt
+                )
+                session.add(new_option)
+                session.commit()
+
+        session.close()
+
+        return redirect(f'/add_questions/{test_id}')
 
     return render_template('add_question.html',
                            form=form, questions=test.questions, title='Добавление вопроса')
+
+
+@application.route('/delete_question/<int:question_id>', methods=['GET'])
+@login_required
+def delete_question(question_id):
+    if not current_user.is_teacher:
+        return redirect("/login")
+
+    session = db_session.create_session()
+
+    question = session.get(Question, question_id)
+
+    if question.test.creator_id != current_user.id:
+        return redirect('/login')
+
+    session.delete(question)
+    session.commit()
+    session.close()
+
+    return redirect(request.referrer)
 
 
 # ==================================================
@@ -160,13 +216,18 @@ def add_questions(test_id):
 
 # IDIOMS
 # ==================================================
+
 @application.route('/my_idioms', methods=['GET'])
 @login_required
 def my_idioms():
     if not current_user.is_teacher:
         return redirect('/login')
 
-    return render_template('my_idioms.html')
+    session = db_session.create_session()
+    user = session.get(User, current_user.id)
+    idioms = user.idioms
+
+    return render_template('my_idioms.html', idioms=idioms)
 
 
 @application.route('/add_idiom', methods=['GET', 'POST'])
@@ -175,9 +236,55 @@ def add_idiom():
     if not current_user.is_teacher:
         return redirect('/my_tests')
 
-    pass
+    form = AddIdiomForm()
+
+    if form.validate_on_submit():
+        session = db_session.create_session()
+
+        idioms = session.query(Idiom).filter(Idiom.text == form.text.data).all()
+        if len(idioms) > 0:
+            return render_template('add_idiom.html', form=form, title='Добавление идиомы',
+                                   message="Такая идиома уже существует :(")
+
+        new_idiom = Idiom(
+            text=form.text.data,
+            meaning=form.meaning.data,
+            creator_id=current_user.id
+        )
+
+        session.add(new_idiom)
+        session.commit()
+        session.close()
+
+        return redirect('/my_idioms')
+
+    return render_template('add_idiom.html', form=form, title='Добавление идиомы')
 
 
+@application.route('/delete_idiom/<int:idiom_id>', methods=['GET'])
+@login_required
+def delete_idiom(idiom_id):
+    if not current_user.is_teacher:
+        return redirect('/login')
+
+    session = db_session.create_session()
+
+    idiom = session.get(Idiom, idiom_id)
+
+    if idiom.creator_id != current_user.id:
+        return redirect('/login')
+
+    session.delete(idiom)
+    session.commit()
+    session.close()
+
+    return redirect(request.referrer)
+
+
+# ==================================================
+
+
+# RESULTS
 # ==================================================
 
 @application.route('/pupils_results', methods=['GET'])
@@ -188,6 +295,7 @@ def pupils_results():
 
 
 # ==================================================
+
 
 # AUTHENTICATION
 # ==================================================
@@ -256,6 +364,7 @@ def logout():
 
 # ==================================================
 
+
 # PROFILE
 # ==================================================
 
@@ -306,6 +415,7 @@ def delete_profile(user_id):
 
 
 # ==================================================
+
 
 if __name__ == '__main__':
     application.run(host='0.0.0.0')

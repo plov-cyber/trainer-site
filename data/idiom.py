@@ -17,4 +17,4 @@ class Idiom(SqlAlchemyBase, SerializerMixin):
     creator_id = sqlalchemy.Column(sqlalchemy.Integer, sqlalchemy.ForeignKey('users.id'), nullable=False)
     creator = orm.relationship('User', back_populates='idioms')
 
-    questions = orm.relationship('Question', back_populates='idiom')
+    questions = orm.relationship('Question', back_populates='idiom', cascade="all, delete")
