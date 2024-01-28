@@ -184,21 +184,25 @@ def take_test(test_id, question_id, option_id):
     shuffle(form.options.choices)
     form.idiom.label = question.idiom.text
 
-    # On test start or end
-    # elif question_id == len(test.questions):
-    #     return render_template('take_test.html', title="Прохождение теста",
-    #                            test_stage="end", test=test, form=form)
-
     return render_template('take_test.html', q_id=question_id,
                            test_stage='process', test=test, form=form,
                            title="Прохождение теста")
+
+
+@application.route('/edit_test/<int:test_id>', methods=['GET'])
+@login_required
+def edit_test(test_id):
+    if not current_user.is_teacher:
+        return redirect('/my_tests')
+
+    return render_template('edit_test.html', title="Редактирование теста", test_id=test_id)
 
 
 @application.route('/delete_test/<int:test_id>', methods=['GET'])
 @login_required
 def delete_test(test_id):
     if not current_user.is_teacher:
-        return redirect('/login')
+        return redirect('/my_tests')
 
     session = db_session.create_session(__factory)
 
@@ -224,7 +228,7 @@ def delete_test(test_id):
 @login_required
 def add_questions(test_id):
     if not current_user.is_teacher:
-        return redirect('/login')
+        return redirect('/my_tests')
 
     form = AddQuestionForm()
 
@@ -234,6 +238,7 @@ def add_questions(test_id):
     form.idiom.choices = [
         (idiom.id, idiom.text)
         for idiom in session.query(Idiom).filter(Idiom.creator_id == current_user.id).all()
+        if not any(idiom.meaning == q.answer for q in test.questions)
     ]
 
     if form.validate_on_submit():
@@ -269,14 +274,14 @@ def add_questions(test_id):
         return redirect(f'/add_questions/{test_id}')
 
     return render_template('add_question.html',
-                           form=form, questions=test.questions, title='Добавление вопроса')
+                           form=form, questions=test.questions, title='Добавление вопросов')
 
 
 @application.route('/delete_question/<int:question_id>', methods=['GET'])
 @login_required
 def delete_question(question_id):
     if not current_user.is_teacher:
-        return redirect("/login")
+        return redirect("/my_tests")
 
     session = db_session.create_session(__factory)
 
@@ -302,13 +307,13 @@ def delete_question(question_id):
 @login_required
 def my_idioms():
     if not current_user.is_teacher:
-        return redirect('/login')
+        return redirect('/my_tests')
 
     session = db_session.create_session(__factory)
     user = session.get(User, current_user.id)
     idioms = user.idioms
 
-    return render_template('my_idioms.html', idioms=idioms)
+    return render_template('my_idioms.html', idioms=idioms, title="Мои идиомы")
 
 
 @application.route('/add_idiom', methods=['GET', 'POST'])
@@ -346,7 +351,7 @@ def add_idiom():
 @login_required
 def delete_idiom(idiom_id):
     if not current_user.is_teacher:
-        return redirect('/login')
+        return redirect('/my_tests')
 
     session = db_session.create_session(__factory)
 
@@ -368,11 +373,46 @@ def delete_idiom(idiom_id):
 # RESULTS
 # ==================================================
 
+@application.route('/add_pupils/<int:test_id>/<int:pupil_id>', methods=['GET'])
+@login_required
+def add_pupils(test_id, pupil_id):
+    session = db_session.create_session(__factory)
+    pupils = session.query(User).filter(User.is_teacher == False).all()
+
+    current_test_pupils = list(map(lambda pupil: pupil.id, session.get(Test, test_id).pupils))
+
+    if pupil_id != 0:
+        session2 = db_session.create_session(__factory)
+        pupil = session2.get(User, pupil_id)
+        test = session2.get(Test, test_id)
+        test.pupils.append(pupil)
+        session2.commit()
+        session2.close()
+
+        return redirect(f"/add_pupils/{test_id}/0")
+
+    return render_template('add_pupils.html', title="Добавление учеников",
+                           pupils=pupils, current_test_pupils=current_test_pupils, test_id=test_id)
+
+
+@application.route('/remove_pupil/<int:test_id>/<int:pupil_id>', methods=['GET'])
+@login_required
+def remove_pupil(test_id, pupil_id):
+    session = db_session.create_session(__factory)
+
+    test = session.get(Test, test_id)
+    test.pupils = [p for p in test.pupils if p.id != pupil_id]
+    session.commit()
+    session.close()
+
+    return redirect(f'/add_pupils/{test_id}/0')
+
+
 @application.route('/pupils_results', methods=['GET'])
 @login_required
 def pupils_results():
     if not current_user.is_teacher:
-        return redirect('/login')
+        return redirect('/my_tests')
 
     # заглушка
     return redirect('/my_tests')

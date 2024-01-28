@@ -1,17 +1,5 @@
 {% extends "base.html" %}
 
-{#{% block script %}#}
-{#<script type="text/javascript">#}
-{#    setInterval(function() {#}
-{#        $.getJSON($SCRIPT_ROOT + '/get_news',#}
-{#        function(data) {#}
-{#            $("#news").html(data.news)#}
-{#        });#}
-{#        return false;#}
-{#    }, 4000);#}
-{#</script>#}
-{#{% endblock %}#}
-
 {% block content %}
 
     <div class="container-fluid shadow-sm rounded" style="background-color: #F0F0F0;">
@@ -24,39 +12,37 @@
 
     <br>
 
-    {% block forms %}
-        <div style="max-width: 600px; margin: auto;" align="center">
-            <form method="post" novalidate>
-                {{ test_form.hidden_tag() }}
-                {{ test_form.csrf_token }}
-                <br>
+    <div style="max-width: 600px; margin: auto;" align="center">
+        <form method="post" novalidate>
+            {{ test_form.hidden_tag() }}
+            {{ test_form.csrf_token }}
+            <br>
 
-                <div class="form-group row">
-                    {{ test_form.name.label(for="name_input", class="col-sm-2 col-form-label") }}
-                    <div class="col-sm-10">
-                        {{ test_form.name(class="form-control", id="name_input") }}
+            <div class="form-group row">
+                {{ test_form.name.label(for="name_input", class="col-sm-2 col-form-label") }}
+                <div class="col-sm-10">
+                    {{ test_form.name(class="form-control", id="name_input") }}
+                </div>
+            </div>
+            {% for error in test_form.name.errors %}
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-10 alert alert-danger" role="alert">
+                        {{ error }}
                     </div>
                 </div>
-                {% for error in test_form.name.errors %}
-                    <div class="row">
-                        <div class="col-sm-2"></div>
-                        <div class="col-sm-10 alert alert-danger" role="alert">
-                            {{ error }}
-                        </div>
-                    </div>
-                {% endfor %}
+            {% endfor %}
 
-                <div class="form-group row">
-                    <div class="col-sm-12">
-                        {{ test_form.submit(type="submit", class="btn btn-primary") }}
-                    </div>
+            <div class="form-group row">
+                <div class="col-sm-12">
+                    {{ test_form.submit(type="submit", class="btn btn-primary") }}
                 </div>
+            </div>
 
-                {% if message %}
-                    <div class="row alert alert-danger">{{ message }}</div>
-                {% endif %}
-            </form>
-        </div>
-    {% endblock %}
+            {% if message %}
+                <div class="row alert alert-danger">{{ message }}</div>
+            {% endif %}
+        </form>
+    </div>
 
 {% endblock %}
