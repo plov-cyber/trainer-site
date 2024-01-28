@@ -1,3 +1,5 @@
+from random import shuffle
+
 from flask import Flask, render_template, redirect, request
 from flask_login import LoginManager, login_user, logout_user, current_user, login_required
 import logging
@@ -15,6 +17,7 @@ from forms.change_pwd_form import ChangePasswordForm
 from forms.create_test_form import CreateTestForm
 from forms.add_question_form import AddQuestionForm
 from forms.add_idiom_form import AddIdiomForm
+from forms.answer_question_form import AnswerQuestionForm
 
 from secret_key import secret_key
 
@@ -119,10 +122,76 @@ def create_test():
     return render_template('create_test.html', test_form=test_form, title='Создание теста')
 
 
-@application.route('/take_test/<int:test_id>', methods=['GET', 'POST'])
+@application.route('/start_test/<int:test_id>', methods=['GET'])
 @login_required
-def take_test(test_id):
-    pass
+def start_test(test_id):
+    session = db_session.create_session(__factory)
+    test = session.get(Test, test_id)
+
+    return render_template('take_test.html', title="Прохождение теста",
+                           test_stage='start', test=test)
+
+
+@application.route('/end_test/<int:test_id>', methods=['GET'])
+@login_required
+def end_test(test_id):
+    session = db_session.create_session(__factory)
+    test = session.get(Test, test_id)
+
+    session2 = db_session.create_session(__factory)
+    user = session2.get(User, current_user.id)
+
+    num_of_points = user.tmp_test_result
+    possible_num_of_points = len(test.questions)
+
+    user.tmp_test_result = 0
+    session2.commit()
+    session2.close()
+
+    return render_template('take_test.html', title="Прохождение теста",
+                           test_stage='end', test=test,
+                           num_of_points=num_of_points, possible_num_of_points=possible_num_of_points)
+
+
+@application.route('/take_test/<int:test_id>/<int:question_id>/<int:option_id>', methods=['GET', 'POST'])
+@login_required
+def take_test(test_id, question_id, option_id):
+    session = db_session.create_session(__factory)
+
+    test = session.get(Test, test_id)
+
+    # While solving test
+    if 0 < question_id <= len(test.questions):
+        session2 = db_session.create_session(__factory)
+        user = session2.get(User, current_user.id)
+
+        selected_option = session2.get(Option, option_id)
+        prev_question = test.questions[question_id - 1]
+
+        user.tmp_test_result += (selected_option.text == prev_question.answer)
+        session2.commit()
+        session2.close()
+
+    if question_id == len(test.questions):
+        return redirect(f'/end_test/{test_id}')
+
+    question = test.questions[question_id]
+
+    form = AnswerQuestionForm()
+    form.options.choices = [
+        (opt.id, opt.text) for opt in question.options
+    ]
+    shuffle(form.options.choices)
+    form.idiom.label = question.idiom.text
+
+    # On test start or end
+    # elif question_id == len(test.questions):
+    #     return render_template('take_test.html', title="Прохождение теста",
+    #                            test_stage="end", test=test, form=form)
+
+    return render_template('take_test.html', q_id=question_id,
+                           test_stage='process', test=test, form=form,
+                           title="Прохождение теста")
 
 
 @application.route('/delete_test/<int:test_id>', methods=['GET'])
@@ -172,7 +241,7 @@ def add_questions(test_id):
 
         new_question = Question(
             idiom_id=idiom.id,
-            answer=idiom.text,
+            answer=idiom.meaning,
             test_id=test_id
         )
         session.add(new_question)
@@ -197,7 +266,6 @@ def add_questions(test_id):
                 session.commit()
 
         session.close()
-
         return redirect(f'/add_questions/{test_id}')
 
     return render_template('add_question.html',

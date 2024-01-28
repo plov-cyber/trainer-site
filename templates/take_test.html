@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+
+{% block content %}
+    <div class="container-fluid shadow-sm rounded" style="background-color: #F0F0F0;">
+        <div class="row">
+            <div class="col-12">
+                <h1>Тест: {{ test.name }}</h1>
+            </div>
+        </div>
+    </div>
+    <br>
+
+    {% if test_stage == 'start' %}
+        <div class="container-fluid" align="center">
+            <div class="row">
+                <div class="col-12">
+                    <a href="/take_test/{{ test.id }}/0/0" class="btn btn-primary">
+                        Начать тест
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% elif test_stage == "process" %}
+
+        <div style="max-width: 600px; margin: auto;" align="center">
+            <h3>Вопрос {{ q_id + 1 }}</h3>
+
+            <form method="post" novalidate>
+                {{ form.hidden_tag() }}
+                {{ form.csrf_token }}
+
+                {# Вопрос #}
+                <p style="font-size:18px;">
+                    Выберите правильное значение из предложенных для следующей <b>идиомы</b>:
+                </p>
+                <p style="font-size:18px;">
+                    {{ form.idiom.label }}
+                </p>
+
+                {#  Варианты ответов #}
+                {% for option in form.options.iter_choices() %}
+                    <a href="/take_test/{{ test.id }}/{{ q_id + 1 }}/{{ option[0] }}" class="col-10 btn btn-info"
+                       style="margin-bottom: 10px;">
+                        {{ option[1] }}
+                    </a>
+                    <br>
+                {% endfor %}
+
+            </form>
+        </div>
+
+    {% else %}
+        {# Конец теста #}
+        <div class="container-fluid" align="center">
+            <h3>Вы получили {{ num_of_points }}/{{ possible_num_of_points }} баллов</h3>
+            <br>
+            <a class="btn btn-primary" href="/my_tests">
+                Назад к моим тестам
+            </a>
+        </div>
+
+
+    {% endif %}
+{% endblock %}

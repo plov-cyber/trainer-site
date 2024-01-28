@@ -43,7 +43,7 @@
                 {% if current_user.is_teacher %}
                     <div class="row">
                         <div class="col-7">
-                            <a href="/take_test/{{ test.id }}" class="btn btn-primary">
+                            <a href="/start_test/{{ test.id }}" class="btn btn-primary">
                                 Пройти
                             </a>
                             <a href="/add_questions/{{ test.id }}" class="btn btn-secondary">
@@ -57,7 +57,7 @@
                 {% else %}
                     <div class="row">
                         <div class="col-5">
-                            <a href="/solve_test/{{ test.id }}" class="btn btn-secondary">
+                            <a href="/start_test/{{ test.id }}" class="btn btn-primary">
                                 Пройти
                             </a>
                         </div>
